@@ -1,16 +1,19 @@
 import { autobind } from '../src/core-decorators';
 
-class MyClass {
+class Parent {
+  p() {}
+}
+class Child extends Parent {
   @autobind
-  a() {
+  c() {
     console.log(this);
   }
 }
 
-const c = new MyClass();
+// const c = new Child();
 
-const cc = c.a;
-cc();
+// const cc = c.a;
+// cc();
 
 // class TestGet {
 //   getName() {

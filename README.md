@@ -242,11 +242,11 @@ function _applyDecoratedDescriptor(
 
 现在我们对 `Descorators` 有了大致的了解，接下来看下 **Descorators 应用部分**
 
-## `autobind`
+## `@autobind`
 
 我们先来看一个关于 `this` 的问题
 
-### Problem
+### `this` 的指向问题
 
 ```js
 class Person {
@@ -321,18 +321,11 @@ person.getPerson();
 
 通过上面学习到的知识，接着来讲解 `Decorator` 中如何实现 `autobind` 给函数或类自动绑定 `this`
 
-### Solution
+### autobind 实现逻辑
 
-首先来看，对方法实现自动绑定 `this`
+一、 首先来看下 **如何给类的方法自动绑定 `this`**：
 
-```js
-class Person {
-  @autobind
-  getPerson() {
-    return this;
-  }
-}
-```
+1. 开始前，先来运行下面这段代码：
 
 ```js
 var obj = {
@@ -355,37 +348,74 @@ fn();
 obj.fn();
 ```
 
-通过之前对 `Descorator` 的认识，我们可以确定 `autobindMethod` 方法的函数签名应该为：`function autobindMethod(target, key, descriptor)` 返回值为修改后的 `descriptor`
+![](img/get_this.png)
 
-要实现对方法 `this` 值的绑定，需要对 `descriptor` 中的 `get` 进行处理：
+2. 可以得到的一个结论：`get(){}` 访问器属性里面的 `this` 始终指向 `obj` 这个对象。
+
+3. 如果简化逻辑，也就是不考虑其他特殊情况下，`autobindMethod` 应该是这样的：
 
 ```js
-const descriptor = {
-  get() {
-    if (this === target) {
-      return fn;
-    }
-    if (
-      this.constructor !== constructor &&
-      getPrototypeOf(this).constructor === constructor
-    ) {
-      return fn;
-    }
-
-    if (this.constructor !== constructor && key in this.constructor.prototype) {
-      return getBoundSuper(this, fn);
-    }
-
-    const boundFn = bind(fn, this);
-
-    defineProperty(this, key, {
-      configurable: true,
-      writable: true,
-      enumerable: false,
-      value: boundFn
-    });
-
-    return boundFn;
-  }
-};
+function autobindMethod(target, key, { value: fn, configurable, enumerable }) {
+  return {
+    configurable,
+    enumerable,
+    get() {
+      const boundFn = fn.bind(this);
+      defineProperty(this, key, {
+        configurable: true,
+        writable: true,
+        enumerable: false,
+        value: boundFn
+      });
+      return boundFn;
+    },
+    set: createDefaultSetter(key)
+  };
+}
 ```
+
+> **bind()** 方法创建一个**新的函数**， 当这个新函数被调用时 this 键值为其提供的值，其参数列表前几项值为创建时指定的参数序列。
+
+有了 `autobind` 这个装饰器，`getName` 方法的 `this` 就始终指向实例对象本身了。
+
+```js
+class TestGet {
+  @autobind
+  getName() {
+    console.log(this);
+  }
+}
+```
+
+二、接着来看下类的 `autobind` 实
+
+对类绑定 `this` 其实就是为了批量给类的实例方法绑定 `this` 所以只要获取所有实例方法，再调用 `autobindMethod` 即可。
+
+```js
+function autobindClass(klass) {
+  const descs = getOwnPropertyDescriptors(klass.prototype);
+  const keys = getOwnKeys(descs);
+
+  for (let i = 0, l = keys.length; i < l; i++) {
+    const key = keys[i];
+    const desc = descs[key];
+
+    if (typeof desc.value !== 'function' || key === 'constructor') {
+      continue;
+    }
+
+    defineProperty(
+      klass.prototype,
+      key,
+      autobindMethod(klass.prototype, key, desc)
+    );
+  }
+}
+```
+
+## `@mixin`
+
+## 源码分析推荐
+
+- [lodash-decorators](https://github.com/steelsojka/lodash-decorators#readme)
+- [core-decorators](https://github.com/jayphelps/core-decorators)

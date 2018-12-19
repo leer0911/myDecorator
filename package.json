@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel ./demo/index.html",
-    "babel": "babel ./demo/demo.js -w --out-dir dist"
+    "babel": "babel ./demo/demo.js -w --out-dir dist",
+    "build": "tsc -p tsconfig.build.json"
   },
   "author": "",
   "license": "ISC",
