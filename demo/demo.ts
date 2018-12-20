@@ -1,4 +1,10 @@
-import { bind } from '../src/index';
+// import { bind } from '../src/index';
+
+import { DecoratorFactory, DecoratorConfig } from '../src/index';
+
+const bind = DecoratorFactory.createDecorator(new DecoratorConfig(()=>{
+  console.log('a');
+},()=>{}));
 
 class MyClass {
   @bind()

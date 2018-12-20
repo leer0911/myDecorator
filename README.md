@@ -1,21 +1,50 @@
-# Decorators
+# Decorators 低侵入性探索
 
-[Decorators](https://github.com/wycats/javascript-decorators) 目前处于[提案阶段](https://github.com/tc39/proposals)，可通过 `babel` 或 `TS` 编译使用。
-本文分为三部分：
+虽然本文的初衷是讲 ES7 中的装饰器，但笔者更喜欢在探索的过程中加深对前端基础知识的理解。本着一颗刨根问底儿的心，分享内容会尽可能多地将一些关联知识串联起来讲解。
 
-- Decorators 基本概念
-- Babel 与 Decorators
-- TypeScript 与 Decorators
+咋一看可能会有点乱，但却是笔者学习一个新知识的完整路径。 一种带着关键词去学习的方法，比较笨，读者选读即可，取精华去糟粕。
 
-## 基本概念
+另外，这个[仓库](https://github.com/leer0911/myDecorator) 是专门用来记录 **Decorators 低侵入性探索** 知识收获的。后续  可能会  结合 mobx 源码、以及在 React 中的应用来深入。
 
-> 装饰器 (Decorators) 让你可以在设计时对类和类的属性进行注解和修改。
+前端知识广度无边无际，深度深不可测，笔者记性不好，类似的仓库有:
 
-`Decorators` 接受目标对象、名称和装饰器描述作为参数，可选地返回一个装饰器描述来安装到目标对象上，其的函数签名为 `function(target, key?, descriptor?)`。
+- [XHR](https://github.com/leer0911/myXHR)
+- [CSS](https://github.com/leer0911/myCss)
+- [Promise](https://github.com/leer0911/myPromise)
 
-`Decorators` 的本质是利用了 ES5 的 [`Object.defineProperty`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) 方法
+## 概览
 
-### `Object.defineProperty`
+[Decorators](https://github.com/wycats/javascript-decorators) 属于 ES7， 目前处于[提案阶段](https://github.com/tc39/proposals)，可通过 `babel` 或 `TS` 编译使用。
+
+本文属于探索型，主要分为三部分：
+
+- Decorators 基础知识
+
+- Babel 与 TypeScript 支持
+
+- 常见应用场景
+
+## 基础知识
+
+> 装饰器 (Decorators) 让你可以在设计时对类和类的属性进行“注解”和修改。
+
+`Decorators` 一般接受三个  参数：
+
+- 目标对象 target
+
+- 属性名称 key
+
+- 描述对象 descriptor
+
+可选地返回  一个描述对象来安装到目标对象上，其的函数签名为
+
+`function(target, key?, descriptor?)`。
+
+### Object.defineProperty
+
+`Decorators` 的本质是利用了 ES5 的 [`Object.defineProperty`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty) 方法，这个方法着实改变了很多，比如 vue 响应式数据的实现方法，当然还有更为迷人 `proxy`，是不是发现，很多框架背后的靠山都离不开这些底层规范的支持。
+
+下面来简单了解下这个方法：
 
 > `Object.defineProperty()` 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。
 
@@ -57,19 +86,31 @@
 
 - `set` 获取该属性的设置器函数（`setter`）。 如果没有设置器， 该值为 `undefined`。(仅针对包含访问器或设置器的属性描述有效)
 
+各式的装饰器一般都是基于修改上述属性来实现，比如 `writable`  可用于设置 `@readonly`。更多的功能，可参考 `lodash-decorator`
+
+### 基础知识小结
+
+现在我们对 Decorators 方法 `function(target, key?, descriptor?)` 混了个脸熟，同时知道了  `Object.defineProperty` 和 `Descriptor` 与 Decorators 的联系。
+
+但是，目前浏览器对 Es7 这一特性支持  并不友好。Decorators 目前还只是语法糖，尝鲜可通过 babel 、TypeScript。
+
+接下来就来了解这一部分的内容。
+
 ## babel 与 Decorators
 
-现阶段官方说有 2 种装饰器，但从实际使用上来看是有 4 种，分别是：
+很多  构建工具都离不开 babel，比如笔者用于快速跑 demo 的 parcel。虽然很多时候我们并不需要关心这些构建后的代码，但笔者建议有时间还是多了解下，毕竟前端打包后出现的 bug 还是很常见的。
 
-- 作用于 `class` 上的 “**类装饰器**”。
+回到装饰器，现阶段官方说有 2 种装饰器，但从实际使用上可分为 4 种，分别是：
 
-- 作用于属性上的 “**属性装饰器**”，这需要配合另一个的类属性语法提案，或者作用于对象字面量。
+- “**类装饰器**” 作用于 `class`。
 
-- 作用于方法上的 “**方法装饰器**”。
+- “**属性装饰器**” 作用于属性上的，这需要配合另一个的类属性语法提案，或者作用于对象字面量。
 
-- 作用于 `getter` 或 `setter` 上的 “**访问器装饰器**”。
+- “**方法装饰器**” 作用于方法上。
 
-下面我们通过 babel ，来感受一下各装饰器：
+- “**访问器装饰器**” 作用于 `getter` 或 `setter` 上的。
+
+下面我们通过 babel 命令行，来感受一下各装饰器：
 
 ### babel 配置
 
@@ -86,8 +127,6 @@ npm i -g babel
 ```json
 {
   "presets": [["es2015", { "modules": false }]],
-  // transform-decorators-legacy 用于支持 `decorators`
-  // transform-class-properties 用于支持 类属性
   "plugins": ["transform-decorators-legacy", "transform-class-properties"],
   "env": {
     "development": {
@@ -161,7 +200,7 @@ var MyClass = (initClass, Decorator, _class);
 
 ![](img/classpro.png)
 
-区别在于传入的第三个参数 `Descriptor` 并不是由 `Object.getOwnPropertyDescriptor(_class.prototype, 'getName')` 返回的，并且多了一个 `Descriptor` 并不存在的 `initializer` 属性供`_applyDecoratedDescriptor` 方法使用。
+区别在于传入的第三个参数 `Descriptor` 并不是由 `Object.getOwnPropertyDescriptor(_class.prototype, 'getName')` 返回的，并且多了一个 `Descriptor` 上并不存在的 `initializer` 属性供 `_applyDecoratedDescriptor` 方法使用。
 
 ```js
 _applyDecoratedDescriptor(
@@ -392,7 +431,7 @@ class TestGet {
 }
 ```
 
-二、接着来看下类的 `autobind` 实
+二、接着来看下类的 `autobind` 实现
 
 对类绑定 `this` 其实就是为了批量给类的实例方法绑定 `this` 所以只要获取所有实例方法，再调用 `autobindMethod` 即可。
 
@@ -418,7 +457,128 @@ function autobindClass(klass) {
 }
 ```
 
+以上实现考虑的是  Babel 编译后的文件，除了 Babel ，TypeScript 也支持编译 Decorators。
+
+因此就需要一个更为通用的 Decorators 包装函数，接下来让我们一起实现它。
+
 ## TypeScript 与 Decorators
+
+先来  一起看下  TypeScript 编译后的结果。
+
+![](img/ts.png)
+
+从上图可以看出，TypeScript 对 Decorator 编译的结果跟 Babel 略微不同，TypeScript 对属性和方法没有过多的处理，唯一的  区别可能就是在对类的处理上，传入的 `target` 为类本身，而不是 `Prototype`。
+
+### 通用 Decorator
+
+无论是用什么编译器生成的代码，最终参数还是离不开 `target, name, descriptor`。另外，无论怎么包装，最终也是为了提供一个能够新增或者修改 `descriptor` 某个属性的函数，只要是对属性的修改，就必然离不开 `Object.defineProperty` 。
+
+> 有时候，我们难以读懂某段代码，可能只是因为没有进入这段代码的真实上下文（应用场景）。如果是按需求来开发某个 Decorator,事情就会变得简单。
+
+通用 Decorator，意味着将要用于生成具有共有特征且用于不同场景的装饰器，通常最容易让人想到就是工厂模式。
+
+我们来看下 `lodash-decorators` 中的实现：
+
+```ts
+export class InternalDecoratorFactory {
+  createDecorator(config: DecoratorConfig): GenericDecorator {
+    // 基础装饰器
+  }
+
+  createInstanceDecorator(config: DecoratorConfig): GenericDecorator {
+    // 生成用于实例的装饰器
+  }
+
+  private _isApplicable(
+    context: InstanceChainContext,
+    config: DecoratorConfig
+  ): boolean {
+    // 是否可调用
+  }
+
+  private _resolveDescriptor(
+    target: Object,
+    name: string,
+    descriptor?: PropertyDescriptor
+  ): PropertyDescriptor {
+    // 获取 Descriptor 的通用方法。
+  }
+}
+```
+
+这里用 TypeScript 的好处在于，类本身具备某种结构。也就是可供类型描述使用。另外，在看源码过程中，TypeScript 的类型有助于快速理解作者意图。
+
+比如单看上面代码，我们就可以知道 `createDecorator` 和 `createInstanceDecorator` 都接收类型为 `DecoratorConfig` 的参数，以及返回都是通用的 Decorator `GenericDecorator`。
+
+那我们先来看下：
+
+```ts
+export interface DecoratorConfigOptions {
+  bound?: boolean;
+  setter?: boolean;
+  getter?: boolean;
+  property?: boolean;
+  method?: boolean;
+  optionalParams?: boolean; // 是否使用自定义参数
+}
+
+export class DecoratorConfig {
+  constructor(
+    public readonly execute: Function, // 处理函数，如传入 debounce 函数
+    public readonly applicator: Applicator, // 根据处理函数不同，选用不同的函数调用程序。
+    public readonly options: DecoratorConfigOptions = {}
+  ) {}
+}
+```
+
+关键的参数有：
+
+- `execute` 装饰函数的核心处理函数。
+- `applicator` 主要作用是用于配置参数及函数的调用。
+- `options` 额外的配置选项，如是否是属性，是否是方法，是否使用自定义参数等。
+
+这里的 Applicator 属于函数调用中公共部分的抽离：
+
+```ts
+export interface ApplicateOptions {
+  config: DecoratorConfig;
+  target: any;
+  value: any;
+  args: any[];
+  instance?: Object;
+}
+
+export abstract class Applicator {
+  abstract apply(options: ApplicateOptions): any;
+}
+```
+
+一个通用的 Decorator 的核心部分差不多就这些了，但由于笔者实际应用 Decorators 的地方不多，对于`lodash-decorators`源码中为什么一定要有 `createDecorator` 和 `createInstanceDecorator` 两种生成方法，以及为什么要引入 `weekMap` 的原因，一时也给不了非常准确的答案。`createInstanceDecorator` 也许是出于原型链考虑？因为实例，才能访问原型链继承后得到的方法，**希望有这方面研究的读者可以不吝赐教，不胜感激**。
+
+### 应用
+
+结合 `lodash`,关注点分离了。实现各种 decorators 在代码实现上就变得非常简单。比如，前端可能会经常用到的**函数节流**，**函数防抖**，**delay**。
+
+```ts
+import debounce = require('lodash/debounce');
+import { PreValueApplicator } from './applicators';
+
+const decorator = DecoratorFactory.createInstanceDecorator(
+  new DecoratorConfig(debounce, new PreValueApplicator(), { setter: true })
+);
+
+export function Debounce(wait?: number, options?: DebounceOptions): LodashDecorator {
+  return decorator(wait, options);
+}
+```
+
+通过通用调用 `DecoratorFactory` 生成的 decorator 
+
+## 总结
+
+`Decorators` 涉及的知识并不难，关键在于如何巧妙运用。初期没经验，可以学习笔者看些周边库，比如 `lodash-decorators`。所谓的  低侵入性，也只是视觉感官上的，不过确实多少能提高代码的可读性。
+
+最后，前端路上，多用 【闻道有先后，术业有专攻】安慰自己。 感谢阅读，愿君多采撷！
 
 ## 参考
 
