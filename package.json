@@ -6,16 +6,21 @@
   "scripts": {
     "start": "parcel ./demo/index.html",
     "babel": "babel ./demo/demo.js -w --out-dir dist",
-    "build": "tsc -p tsconfig.build.json"
+    "ts": "tsc -w ./demo/demo.ts"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/lodash": "^4.14.119",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-decorators-legacy": "^1.3.5",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1"
+    "babel-preset-es2015": "^6.24.1",
+    "typescript": "^3.0.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11"
   }
 }

@@ -1,6 +1,11 @@
 # Decorators
 
-[Decorators](https://github.com/wycats/javascript-decorators) 目前处于[提案阶段](https://github.com/tc39/proposals)，可通过 babel 编译使用。
+[Decorators](https://github.com/wycats/javascript-decorators) 目前处于[提案阶段](https://github.com/tc39/proposals)，可通过 `babel` 或 `TS` 编译使用。
+本文分为三部分：
+
+- Decorators 基本概念
+- Babel 与 Decorators
+- TypeScript 与 Decorators
 
 ## 基本概念
 
@@ -240,9 +245,9 @@ function _applyDecoratedDescriptor(
 
 > **void 运算符** 对给定的表达式进行求值，然后返回 `undefined`。
 
-现在我们对 `Descorators` 有了大致的了解，接下来看下 **Descorators 应用部分**
+现在我们对 `Descorators` 有了大致的了解，接下来看下 **Descorators 基于 babel 编译下的装饰器**
 
-## `@autobind`
+### 自动绑定 `this`
 
 我们先来看一个关于 `this` 的问题
 
@@ -413,9 +418,9 @@ function autobindClass(klass) {
 }
 ```
 
-## `@mixin`
+## TypeScript 与 Decorators
 
-## 源码分析推荐
+## 参考
 
 - [lodash-decorators](https://github.com/steelsojka/lodash-decorators#readme)
 - [core-decorators](https://github.com/jayphelps/core-decorators)
