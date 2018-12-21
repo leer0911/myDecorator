@@ -2,9 +2,9 @@
 
 虽然本文的初衷是讲 ES7 中的装饰器，但笔者更喜欢在探索的过程中加深对前端基础知识的理解。本着一颗刨根问底儿的心，分享内容会尽可能多地将一些关联知识串联起来讲解。
 
-咋一看可能会有点乱，但却是笔者学习一个新知识的完整路径。 一种带着关键词去学习的方法，比较笨，读者选读即可，取精华去糟粕。
+乍一看可能会有点乱，但却是笔者学习一个新知识的完整路径。 一种带着关键词去学习的方法，比较笨，读者选读即可，取精华去糟粕。
 
-另外，这个[仓库](https://github.com/leer0911/myDecorator) 是专门用来记录 **Decorators 低侵入性探索** 知识收获的。后续  可能会  结合 mobx 源码、以及在 React 中的应用来深入。
+另外，这个[仓库](https://github.com/leer0911/myDecorator) 是专门用来记录 **Decorators 低侵入性探索** 收获的知识。后续可能会结合 mobx 源码、以及在 React 中实际应用场景来深入。
 
 前端知识广度无边无际，深度深不可测，笔者记性不好，类似的仓库有:
 
@@ -28,7 +28,7 @@
 
 > 装饰器 (Decorators) 让你可以在设计时对类和类的属性进行“注解”和修改。
 
-`Decorators` 一般接受三个  参数：
+`Decorators` 一般接受三个参数：
 
 - 目标对象 target
 
@@ -36,7 +36,7 @@
 
 - 描述对象 descriptor
 
-可选地返回  一个描述对象来安装到目标对象上，其的函数签名为
+可选地返回一个描述对象来安装到目标对象上，其的函数签名为
 
 `function(target, key?, descriptor?)`。
 
@@ -86,19 +86,19 @@
 
 - `set` 获取该属性的设置器函数（`setter`）。 如果没有设置器， 该值为 `undefined`。(仅针对包含访问器或设置器的属性描述有效)
 
-各式的装饰器一般都是基于修改上述属性来实现，比如 `writable`  可用于设置 `@readonly`。更多的功能，可参考 `lodash-decorator`
+各式的装饰器一般都是基于修改上述属性来实现，比如 `writable`可用于设置 `@readonly`。更多的功能，可参考 `lodash-decorator`
 
 ### 基础知识小结
 
-现在我们对 Decorators 方法 `function(target, key?, descriptor?)` 混了个脸熟，同时知道了  `Object.defineProperty` 和 `Descriptor` 与 Decorators 的联系。
+现在我们对 Decorators 方法 `function(target, key?, descriptor?)` 混了个脸熟，同时知道了`Object.defineProperty` 和 `Descriptor` 与 Decorators 的联系。
 
-但是，目前浏览器对 Es7 这一特性支持  并不友好。Decorators 目前还只是语法糖，尝鲜可通过 babel 、TypeScript。
+但是，目前浏览器对 Es7 这一特性支持 并不友好。Decorators 目前还只是语法糖，尝鲜可通过 babel 、TypeScript。
 
 接下来就来了解这一部分的内容。
 
 ## babel 与 Decorators
 
-很多  构建工具都离不开 babel，比如笔者用于快速跑 demo 的 parcel。虽然很多时候我们并不需要关心这些构建后的代码，但笔者建议有时间还是多了解下，毕竟前端打包后出现的 bug 还是很常见的。
+很多构建工具都离不开 babel，比如笔者用于快速跑 demo 的 parcel。虽然很多时候我们并不需要关心这些构建后的代码，但笔者建议有时间还是多了解下，毕竟前端打包后出现的 bug 还是很常见的。
 
 回到装饰器，现阶段官方说有 2 种装饰器，但从实际使用上可分为 4 种，分别是：
 
@@ -457,17 +457,17 @@ function autobindClass(klass) {
 }
 ```
 
-以上实现考虑的是  Babel 编译后的文件，除了 Babel ，TypeScript 也支持编译 Decorators。
+以上实现考虑的是 Babel 编译后的文件，除了 Babel ，TypeScript 也支持编译 Decorators。
 
 因此就需要一个更为通用的 Decorators 包装函数，接下来让我们一起实现它。
 
 ## TypeScript 与 Decorators
 
-先来  一起看下  TypeScript 编译后的结果。
+先来一起看下 TypeScript 编译后的结果。
 
 ![](img/ts.png)
 
-从上图可以看出，TypeScript 对 Decorator 编译的结果跟 Babel 略微不同，TypeScript 对属性和方法没有过多的处理，唯一的  区别可能就是在对类的处理上，传入的 `target` 为类本身，而不是 `Prototype`。
+从上图可以看出，TypeScript 对 Decorator 编译的结果跟 Babel 略微不同，TypeScript 对属性和方法没有过多的处理，唯一的区别可能就是在对类的处理上，传入的 `target` 为类本身，而不是 `Prototype`。
 
 ### 通用 Decorator
 
@@ -553,9 +553,11 @@ export abstract class Applicator {
 }
 ```
 
-一个通用的 Decorator 的核心部分差不多就这些了，但由于笔者实际应用 Decorators 的地方不多，对于`lodash-decorators`源码中为什么一定要有 `createDecorator` 和 `createInstanceDecorator` 两种生成方法，以及为什么要引入 `weekMap` 的原因，一时也给不了非常准确的答案。`createInstanceDecorator` 也许是出于原型链考虑？因为实例，才能访问原型链继承后得到的方法，**希望有这方面研究的读者可以不吝赐教，不胜感激**。
+一个通用的 Decorator 的核心部分差不多就这些了，但由于笔者实际应用 Decorators 的地方不多，对于 `lodash-decorators` 源码中为什么有 `createDecorator` 和 `createInstanceDecorator` 两种生成方法，以及为什么要引入 `weekMap` 的原因，一时也给不了非常准确的答案。`createInstanceDecorator` 也许是出于原型链考虑？因为实例，才能访问原型链继承后得到的方法，以后有机会再单独深入。
 
-### 应用
+**希望有这方面研究的读者可以不吝赐教，笔者不胜感激**。
+
+### 常见应用场景
 
 结合 `lodash`,关注点分离了。实现各种 decorators 在代码实现上就变得非常简单。比如，前端可能会经常用到的**函数节流**，**函数防抖**，**delay**。
 
@@ -567,20 +569,41 @@ const decorator = DecoratorFactory.createInstanceDecorator(
   new DecoratorConfig(debounce, new PreValueApplicator(), { setter: true })
 );
 
-export function Debounce(wait?: number, options?: DebounceOptions): LodashDecorator {
+export function Debounce(
+  wait?: number,
+  options?: DebounceOptions
+): LodashDecorator {
   return decorator(wait, options);
 }
 ```
 
-通过通用调用 `DecoratorFactory` 生成的 decorator 
+通过调用 `DecoratorFactory` 生成通用的 decorator，实现各种装饰器功能就只需要像上面一样组织代码即可。
+
+另外像 `Mixin` 这种看似组合优于继承的用法是一种对类的装饰，可以这么去实现：
+
+```ts
+import assign = require('lodash/assign');
+
+export function Mixin(...srcs: Object[]): ClassDecorator {
+  return ((target: Function) => {
+    assign(target.prototype, ...srcs);
+    return target;
+  }) as any;
+}
+```
+
+更多的功能，笔者就不再过多赘述。靠有心的读者去举一反三了，或者直接看 `lodash-decorators` 源码。**毕竟我也是看它们源码来学习的。**
 
 ## 总结
 
-`Decorators` 涉及的知识并不难，关键在于如何巧妙运用。初期没经验，可以学习笔者看些周边库，比如 `lodash-decorators`。所谓的  低侵入性，也只是视觉感官上的，不过确实多少能提高代码的可读性。
+> 这么草率的结束，也许意味着还有更多学习空间。
 
-最后，前端路上，多用 【闻道有先后，术业有专攻】安慰自己。 感谢阅读，愿君多采撷！
+`Decorators` 涉及的知识并不难，关键在于如何巧妙运用。初期没经验，可以学习笔者看些周边库，比如 `lodash-decorators`。所谓的低侵入性，也只是视觉感官上的，不过确实多少能提高代码的可读性。
+
+最后，前端路上，多用 【闻道有先后，术业有专攻】安慰自己，学习永无止境。 感谢阅读，愿君多采撷！
 
 ## 参考
 
+- [ECMAScript proposals](https://github.com/tc39/proposals)
 - [lodash-decorators](https://github.com/steelsojka/lodash-decorators#readme)
 - [core-decorators](https://github.com/jayphelps/core-decorators)
